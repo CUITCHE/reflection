@@ -15,7 +15,7 @@ Baser::~Baser()
 
 Class Baser::getClass()
 {
-	return (*reflection_obj)->id;
+	return s_Baser_reflection_obj->id;
 }
 
 Class Baser::superClass()

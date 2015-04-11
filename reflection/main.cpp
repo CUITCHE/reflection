@@ -20,6 +20,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	inht.number() = 4235;
 	cout << inht.valueForKey<int>("number") << endl;
 	cout << inht.valueForKey<bool>("fly") << endl;
+
+	long count = 0;
+	//C++11的新语法？我才发现，类静态成员函数，可以被对类的对象调用……
+	const char **properties = cpp_getClass_properties(abc.getClass(), count);
+	const char **__pro = cpp_getClass_properties(Inheritor::getClass(), count);
+	cout << properties[0] << "\t" << properties[1] << endl;
+	cout << __pro[0] << endl;
 	return 0;
 }
 

@@ -95,6 +95,7 @@
     <ClCompile Include="HObjectdefs_conn.cpp" />
     <ClCompile Include="inheritor.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Reflection.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

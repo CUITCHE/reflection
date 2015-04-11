@@ -15,7 +15,7 @@ public:
 	virtual ~Baser();
 
 	//获取自身的Class
-	virtual Class getClass();
+	static Class getClass();
 
 	//获取父类的Class
 	virtual Class superClass();
@@ -39,6 +39,8 @@ protected:
 	void add_property(class_type *obj, const char * propertyName, PropertyFunc get_set);
 
 	virtual void add_properties();
+
+	static Baser* get_class() { return new Baser; }
 public:
 	Reflection<Baser> **reflection_obj;
 };
