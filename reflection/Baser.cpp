@@ -1,9 +1,9 @@
 #include "Baser.h"
 
 CHE_NAMESPACE_BEGIN
-static Reflection<Baser> *s_reflection_obj = nullptr;
+static Reflection<Baser> *s_Baser_reflection_obj = nullptr;
 Baser::Baser()
-	:reflection_obj(&s_reflection_obj)
+	:reflection_obj(&s_Baser_reflection_obj)
 {
 	initializeReflection(this);
 }

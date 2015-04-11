@@ -2,7 +2,6 @@
 //
 
 #include "stdafx.h"
-#include "Baser.h"
 #include "inheritor.h"
 #include <iostream>
 #include <string>

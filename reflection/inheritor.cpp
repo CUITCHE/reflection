@@ -1,6 +1,4 @@
 #include "Inheritor.h"
-
-
 CHE_NAMESPACE_BEGIN
 
 

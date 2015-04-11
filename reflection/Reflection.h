@@ -39,10 +39,10 @@ __type__ __##_propertyName_
 #ifndef CHE_REFLECTION_BEGIN
 #define CHE_REFLECTION_BEGIN(class_name, super_class_name)\
 class class_name;\
-static Reflection<class_name> *s_reflection_obj = nullptr;\
+static Reflection<class_name> *s_##class_name##_reflection_obj = nullptr;\
 class class_name :public super_class_name\
 {public:\
-class_name() :reflection_obj(&s_reflection_obj){\
+class_name() :reflection_obj(&s_##class_name##_reflection_obj){\
 	initializeReflection(this);\
 }\
 virtual ~class_name()override {}\
