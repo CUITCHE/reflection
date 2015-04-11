@@ -21,7 +21,7 @@ struct _property_list;
 struct cpp_class {
 	Class super_class;		//父类isa结构
 	char *name;				//类名字
-	long property_count = 0;//类的大小
+	long property_count = 0;//类的所有属性的个数
 	_property_list *properties;	//属性列表
 	DWORD get_class_method;		//保存创建这个类的实例函数的地址。一般为Lambda表达式形成的
 
