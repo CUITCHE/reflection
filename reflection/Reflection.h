@@ -276,7 +276,7 @@ looper1:
 	goto looper1;
 looper2:
 	//向缓存中增加记录
-	property_finder_cache.insert(make_pair(node->property_name, node));
+	property_finder_cache.insert(make_pair(name, node));
 	return node;
 }
 
