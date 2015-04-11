@@ -13,6 +13,58 @@
 #include <map>
 using std::map;
 CHE_NAMESPACE_BEGIN
+//属性声明。包含变量定义以及get-set方法的声明
+#define property(__type__, _propertyName_)\
+public:\
+__type__ __##_propertyName_;\
+public:\
+void _propertyName_(const __type__ &val);\
+const __type__& _propertyName_()const;\
+__type__& _propertyName_()
+
+//属性的get-set方法实现，默认实现
+#define synthesize(class_name, _propertyName_)\
+void class_name::_propertyName_(const decltype(__##_propertyName_) &val){this->__##_propertyName_ = val;}\
+const decltype(__##_propertyName_)& class_name::_propertyName_()const{return this->__##_propertyName_;}\
+decltype(__##_propertyName_)& class_name::_propertyName_(){return this->__##_propertyName_;}
+
+//默认实现方法/*void _propertyName_(const __type__ &val) { this->__##_propertyName_ = val; }\*/
+#define property_synthesize(__type__, _propertyName_) \
+public:\
+__type__& _propertyName_(){return this->__##_propertyName_;}\
+private:\
+__type__ __##_propertyName_
+
+//反射类声明开始
+#ifndef CHE_REFLECTION_BEGIN
+#define CHE_REFLECTION_BEGIN(class_name, super_class_name)\
+class class_name;\
+static Reflection<class_name> *s_reflection_obj = nullptr;\
+class class_name :public super_class_name\
+{public:\
+class_name() :reflection_obj(&s_reflection_obj){\
+	initializeReflection(this);\
+}\
+virtual ~class_name()override {}\
+Class getClass()override { return (*reflection_obj)->id; }\
+Class superClass()override { return super_class_name::getClass(); }\
+bool isKindOfClass(Class class_object)override { return (*reflection_obj)->isSubOfClass(class_object); }\
+template<typename T>\
+void setValueForKey(const char *propertyname, const T &val) {\
+	(*reflection_obj)->setValue_forKey(this, val, propertyname);\
+}\
+template<typename T>\
+const T& valueForKey(const char *propertyname) {\
+	return (*reflection_obj)->value_Forkey<T>(this, propertyname);\
+}\
+Reflection<class_name> **reflection_obj;
+#endif
+
+//反射类声明结束
+#ifndef CHE_REFLECTION_END
+#define CHE_REFLECTION_END };
+#endif
+
 typedef struct obj_class *Class;
 struct _property_;
 struct _property_list;
@@ -31,8 +83,8 @@ struct _property_list {
 
 struct _property_ {
 	char *property_name;
-	DWORD get_method;
-	DWORD set_method;
+	char *property_type;	//运行时的类型名
+	DWORD property_method;
 };
 
 /*
@@ -41,7 +93,7 @@ struct _property_ {
 #include <map>
 using std::map;
 template<typename ClassName>
-struct Reflection
+struct Reflection final
 {
 	typedef ClassName class_type;
 	Class id;
@@ -51,8 +103,8 @@ struct Reflection
 	~Reflection() {}
 
 	//增加属性，传入：属性名，get方法地址，set方法地址
-	template<typename GetFunc, typename SetFunc>
-	void add_property(const char *property_name, GetFunc _get_, SetFunc _set_);
+	template<typename PropertyFunc>
+	void add_property(const char *property_name, PropertyFunc get_set);
 
 	//调用set方法，传入：要设置的对象指针，值，属性名
 	template<typename ValueType>
@@ -79,6 +131,11 @@ protected:
 
 	template<typename T>
 	const T& value_impl(DWORD class_address, DWORD getFunc);
+
+	//比较ValueType和_property_结构里面的类型名是否一样，不一样则返回false
+	//若指针为nullptr，也会返回false
+	template<typename ValueType>
+	bool type_compare(const _property_ *_property);
 private:
 	//property_finder_cache中的内存来自Class id。
 	map<const char*, _property_ *> property_finder_cache;
@@ -89,7 +146,7 @@ inline Reflection<ClassName>::Reflection(ClassName * obj)
 {
 	id = new obj_class;
 	id->instance_size = sizeof ClassName;
-	const char *rawName = typeid(ClassName).raw_name();
+	const char *rawName = typeid(ClassName).name();
 	int length = strlen(rawName) + 1;
 	id->name = new char[length];
 	memcpy(id->name, rawName, sizeof(char)*length);
@@ -168,37 +225,41 @@ looper1:
 }
 
 template<typename ClassName>
-template <typename GetFunc, typename SetFunc>
-inline void Reflection<ClassName>::add_property(const char * property_name, GetFunc _get_, SetFunc _set_)
+template <typename PropertyFunc>
+inline void Reflection<ClassName>::add_property(const char * property_name, PropertyFunc get_set)
 {
+	//安全检查
+	if (property_name == nullptr) {
+		return;
+	}
 	//找到最后一个属性
 	_property_list *node = find_last_property();
-	_property_list *next_now = nullptr;
 	if (node->_property != nullptr) {
 		node->next = new _property_list;
-		next_now = node->next;
-		next_now->next = nullptr;
+		node = node->next;
+		node->next = nullptr;
 	}
-	else {
-		next_now = node;
-	}
-	next_now->_property = new _property_;
+	node->_property = new _property_;
 
-	_property_ *now_property = next_now->_property;
+	_property_ *now_property = node->_property;
 
 	//把空格也要算上
 	int name_length = strlen(property_name) + 1;
 	now_property->property_name = new char[name_length];
 	//完成对名字的拷贝
 	memcpy(now_property->property_name, property_name, sizeof(char)*name_length);
+
+	typedef ObjectdefsPrivate::StayOrigin<ObjectdefsPrivate::FunctionPointer<PropertyFunc>::ReturnType>::Type arg_type;
+	//完成对类型名字的拷贝
+	const char *arg_type_name = typeid(arg_type).name();
+	name_length = strlen(arg_type_name) + 1;
+	now_property->property_type = new char[name_length];
+	memcpy(now_property->property_type, arg_type_name, sizeof(char)*name_length);
+
 	//记录get方法的函数地址
-	_func_addr<GetFunc> d;
-	d.func = _get_;
-	now_property->get_method = d.addr;
-	//记录set方法的函数地址
-	_func_addr<SetFunc> d2;
-	d2.func = _set_;
-	now_property->set_method = d2.addr;
+	_func_addr<PropertyFunc> d;
+	d.func = get_set;
+	now_property->property_method = d.addr;
 }
 
 template<typename ClassName>
@@ -206,12 +267,13 @@ template <typename ValueType>
 inline bool Reflection<ClassName>::setValue_forKey(class_type * obj, const ValueType & value, const char * property_name)
 {
 	_property_ *the_property = find_property_by_name(property_name);
-	if (the_property == nullptr) {
+	//附带指针检查
+	if (type_compare<ValueType>(the_property) == false) {
 		return false;
 	}
 	//将指针转换成DWORD，利用汇编实现函数的调用
 	DWORD class_address = (DWORD)obj;
-	setValue_impl(class_address, the_property->set_method, value);
+	setValue_impl(class_address, the_property->property_method, value);
 	return true;
 }
 
@@ -220,37 +282,55 @@ template <typename RET>
 inline const RET& Reflection<ClassName>::value_Forkey(class_type * obj, const char * property_name)
 {
 	_property_ *the_property = find_property_by_name(property_name);
-	if (the_property == nullptr) {
-		return RET();
+	//附带指针检查
+	if (type_compare<RET>(the_property) == false) {
+		static const RET _default_ = RET();
+		return _default_;
 	}
 	//将指针转换成DWORD，利用汇编实现函数的调用
 	DWORD class_address = (DWORD)obj;
-	return value_impl<RET>(class_address, the_property->get_method);
+	return value_impl<RET>(class_address, the_property->property_method);
 }
 
 template<typename ClassName>
 template <typename T>
 inline void Reflection<ClassName>::setValue_impl(DWORD class_address, DWORD setFunc, const T & val)
 {
-	typedef void(__stdcall *__SET)(const T &);
+	typedef T &(__stdcall *__SET)(void);
 	__SET SET = (__SET)setFunc;
 	__asm {
 		mov ecx, class_address
 	};
 	//完成set方法的调用
-	SET(val);
+	SET() = val;
 }
 template<typename ClassName>
 template <typename T>
 inline const T& Reflection<ClassName>::value_impl(DWORD class_address, DWORD getFunc)
 {
-	typedef const T &(__stdcall *__GET)(void);
+	typedef T &(__stdcall *__GET)(void);
 	__GET GET = (__GET)getFunc;
 	__asm {
 		mov ecx, class_address
 	};
 	//完成get方法的调用
 	return GET();
+}
+template<typename ClassName>
+template <typename ValueType>
+inline bool Reflection<ClassName>::type_compare(const _property_ * _property)
+{
+	if (_property == nullptr) {
+		fprintf(stderr, "CHE:属性不能为空，对应类型为：%s\n", typeid(ValueType).name());
+		return false;
+	}
+	const char *name = typeid(ValueType).name();
+	if (strcmp(name, _property->property_type) == 0) {
+		return true;
+	}
+
+	printf("CHE:类型不匹配，对应类型为：%s\n", typeid(ValueType).name());
+	return false;
 }
 CHE_NAMESPACE_END
 #endif // Reflection_H__

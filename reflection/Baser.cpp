@@ -1,9 +1,9 @@
 #include "Baser.h"
 
 CHE_NAMESPACE_BEGIN
-static Reflection<Baser> *_reflection_ = nullptr;
+static Reflection<Baser> *s_reflection_obj = nullptr;
 Baser::Baser()
-	:reflection(_reflection_)
+	:reflection_obj(&s_reflection_obj)
 {
 	initializeReflection(this);
 }
@@ -15,27 +15,22 @@ Baser::~Baser()
 
 Class Baser::getClass()
 {
-	return reflection->id;
+	return (*reflection_obj)->id;
 }
 
 Class Baser::superClass()
 {
-	return reflection ? reflection->id->super_class : nullptr;
+	return (*reflection_obj) ? (*reflection_obj)->id->super_class : nullptr;
 }
 
 bool Baser::isKindOfClass(Class class_object)
 {
-	return reflection->isSubOfClass(class_object);
+	return (*reflection_obj)->isSubOfClass(class_object);
 }
-
-void Baser::initializeReflection(Baser *obj)
+void Baser::add_properties()
 {
-	if (_reflection_ == nullptr) {
-		_reflection_ = new Reflection<Baser>(obj);
-		reflection = _reflection_;
-		add_property("Number", &Baser::getNumber, &Baser::setNumber);
-		add_property("Price", &Baser::getPrice, &Baser::setPrice);
-	}
+	add_property(this, "number", &Baser::number);
+	add_property(this, "price", &Baser::price);
 }
 
 

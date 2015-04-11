@@ -87,9 +87,6 @@ inline const Class##Private* d_func()const { return d_ptr.get(); }\
 	private: _Type_ _variable_;\
 	public:getsetter(_Type_, _variable_, _name_)\
 
-//·´Éäºê
-#define REFLECTION(_name_, _OBJ_)\
-	T::_reflection_->add_property(_p##_name_, &_OBJ_::get##_name_, &_OBJ_::set##_name_)
 typedef signed char int8, *Pint8;
 typedef signed short int16, *PINT16;
 typedef signed int int32, *PINT32;

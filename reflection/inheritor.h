@@ -1,13 +1,10 @@
 #pragma once
 #include "Baser.h"
 CHE_NAMESPACE_BEGIN
-class inheritor :public Baser
-{
-public:
-	inheritor();
-	virtual ~inheritor();
-	GETSETTER(bool, fly,Fly)
-public:
-	static Reflection<Baser> *_reflection_;
-};
+
+CHE_REFLECTION_BEGIN(Inheritor, Baser)
+void add_properties() override { add_property(this, "fly", &Inheritor::fly); }
+property_synthesize(bool, fly);
+CHE_REFLECTION_END
+
 CHE_NAMESPACE_END

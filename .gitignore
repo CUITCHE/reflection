@@ -42,3 +42,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 *.suo
+Debug/
+*.opensdf
+*.sdf
