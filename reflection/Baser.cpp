@@ -27,6 +27,16 @@ bool Baser::isKindOfClass(Class class_object)
 {
 	return (*reflection_obj)->isSubOfClass(class_object);
 }
+const char * Baser::cpp_getClassName()
+{
+	auto name = typeid(Baser).name();
+	long length = strlen(name);
+	int i = length - 1;
+	for (; i >= 0; --i) {
+		if (name[i] == ':')break;
+	}
+	return name + i+1;
+}
 void Baser::add_properties()
 {
 	add_property(this, "number", &Baser::number);

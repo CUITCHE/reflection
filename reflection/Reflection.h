@@ -45,14 +45,21 @@ class class_name;\
 static Reflection<class_name> *s_##class_name##_reflection_obj = nullptr;\
 class class_name :public super_class_name\
 {public:\
-Reflection<class_name> **reflection_obj;\
-class_name() :reflection_obj(&s_##class_name##_reflection_obj){\
-	initializeReflection(this);\
-}\
-virtual ~class_name()override {}\
-static Class getClass() { return s_##class_name##_reflection_obj->id; }\
-Class superClass()override { return super_class_name::getClass(); }\
-bool isKindOfClass(Class class_object)override { return (*reflection_obj)->isSubOfClass(class_object); }\
+	Reflection<class_name> **reflection_obj;\
+	class_name() :reflection_obj(&s_##class_name##_reflection_obj){\
+		initializeReflection(this);\
+	}\
+	static Class getClass() { return s_##class_name##_reflection_obj->id; }\
+	Class superClass()override { return super_class_name::getClass(); }\
+	bool isKindOfClass(Class class_object)override { return (*reflection_obj)->isSubOfClass(class_object); }\
+	static const char* cpp_getClassName() {\
+		auto name = typeid(class_name).name();\
+		long length = strlen(name);\
+		int i = length-1;\
+		for (; i>=0; --i){\
+			if(name[i]==':')break;\
+		}\
+		return name + i+1;}\
 template<typename T>\
 void setValueForKey(const char *propertyname, const T &val) {\
 	(*reflection_obj)->setValue_forKey(this, val, propertyname);\
@@ -62,7 +69,7 @@ const T& valueForKey(const char *propertyname) {\
 	return (*reflection_obj)->value_Forkey<T>(this, propertyname);\
 }\
 protected:\
-static class_name* get_class(){return new class_name;}
+static void* get_class(){return new class_name;}
 #endif
 
 //反射类声明结束
@@ -102,25 +109,11 @@ struct cpp_obj_list {
 };
 static Objts class_list = new ObjectdefsPrivate::StayOrigin<Objts>::Type;
 
-//根据类返回类的全名字
-template<typename class_type>
-const char* cpp_getClassName() {
-	return typeid(class_type).name();
-}
-
-//根据类的名字获取类的实例，如果没有就会返回nullptr，注意内存泄漏问题
-template<typename class_type>
-class_type* cpp_getClass(const char *class_name) {
-	Class tmp = cpp_find_class(class_name);
-	class_type *instance = tmp == nullptr ? nullptr : [=]() {
-		typedef class_type*(__stdcall*GET_INSTANCE)();
-		GET_INSTANCE __get = (GET_INSTANCE)tmp->get_class_method;
-		return __get();
-	}();
-}
-
 //在链表中查找class_name的Class结构，并将结构存储在cache中
 const Class cpp_find_class(const char *class_name);
+
+//根据类的名字获取类的实例，如果没有就会返回nullptr，注意内存泄漏问题
+void* cpp_getClass_instance(const char *class_name);
 
 //返回Class结构的所有被添加过的属性名称，二维形式返回，请不要管理这份内存，否则会出现系统崩溃问题！。
 //尤其，请注意，是这个id下的属性名称的二维，且不包含它的父类结构的属性
@@ -188,7 +181,7 @@ template<typename ClassName>
 inline Reflection<ClassName>::Reflection(ClassName * obj)
 {
 	id = new ObjectdefsPrivate::StayOrigin<Class>::Type;
-	const char *rawName = typeid(ClassName).name();
+	const char *rawName = ClassName::cpp_getClassName();
 	int length = strlen(rawName) + 1;
 	id->name = new char[length];
 	//存下类名字

@@ -76,4 +76,15 @@ const char** cpp_getClass_properties(const Class id, long &count)
 	return (const char **)__memeory;
 }
 
+void* cpp_getClass_instance(const char *class_name)
+{
+	Class tmp = cpp_find_class(class_name);
+	void *instance = tmp == nullptr ? nullptr : [=]() {
+		typedef void*(__stdcall*GET_INSTANCE)();
+		GET_INSTANCE __get = (GET_INSTANCE)tmp->get_class_method;
+		return __get();
+	}();
+	return instance;
+}
+
 CHE_NAMESPACE_END

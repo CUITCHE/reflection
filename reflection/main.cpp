@@ -27,6 +27,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	const char **__pro = cpp_getClass_properties(Inheritor::getClass(), count);
 	cout << properties[0] << "\t" << properties[1] << endl;
 	cout << __pro[0] << endl;
+
+	cout << Inheritor::cpp_getClassName() << endl;
 	return 0;
 }
 

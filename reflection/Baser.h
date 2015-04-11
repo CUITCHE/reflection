@@ -23,6 +23,9 @@ public:
 	//如果this是class_object的子类，返回true
 	virtual bool isKindOfClass(Class class_object);
 
+	//返回类的名字
+	static const char* cpp_getClassName();
+
 	template<typename T>
 	void setValueForKey(const char *propertyname, const T &val);
 
@@ -40,7 +43,7 @@ protected:
 
 	virtual void add_properties();
 
-	static Baser* get_class() { return new Baser; }
+	static void* get_class() { return new Baser; }
 public:
 	Reflection<Baser> **reflection_obj;
 };
