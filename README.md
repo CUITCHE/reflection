@@ -1,16 +1,43 @@
-# reflection
+# Reflection
 我很羡慕Java，Objective-C有自己的反射机制，但是，毕竟是C++，还有什么是C++不能做的？花两个下午+晚上的时间，撸出目前这个反射版本。功能还有待完善，如果有bug，也是情有可原，请各位网友大牛不吝赐教。
-
 利用模板和虚函数建立C++的反射机制。
-
 在每一种需要遍历含有Class结构的链表中，简历映射表，把每一次查询的结果缓存进去，加快第二次再查询的速度。
-
 但是，使用这种机制的前提是，所有具有反射功能的类需要提前被使用过，你可以在程序最开始前把这些反射类都new一边。
-
 果然，不是自己写的编译器，这些工作只能交给程序员来完成了。
-
 我也期待，C++的标准中能出现反射这种机制吧。
+##反射机制的核心底层结构
+```CPP
+typedef struct cpp_class *Class;
+typedef struct cpp_obj_list *Objts;
+struct _property_;
+struct _property_list;
 
+struct cpp_class {
+	Class super_class;		//父类isa结构
+	char *name;				//类名字
+	long property_count = 0;//类的大小
+	_property_list *properties;	//属性列表
+	DWORD get_class_method;		//保存创建这个类的实例函数的地址。一般为Lambda表达式形成的
+
+};
+
+struct _property_list {
+	_property_ *_property;
+	_property_list *next;
+};
+
+struct _property_ {
+	char *property_name;
+	long property_name_length;	//属性名的长度
+	char *property_type;		//运行时的类型名
+	DWORD property_method;
+};
+
+struct cpp_obj_list {
+	Class isa = nullptr;
+	cpp_obj_list *next = nullptr;
+};
+```
 ##如何创建一个反射类
 在我的代码中，我定义了一个基类，名为Baser。这个基类拥有具有反射机制的类的所有方法。为方便定义这样的反射类，我定义了一个宏，`CHE_REFLECTION_BEGIN`和`CHE_REFLECTION_END`，你可以用这一对宏完成反射类的声明与部分定义。比如我代码中的例子：
 ```CPP
