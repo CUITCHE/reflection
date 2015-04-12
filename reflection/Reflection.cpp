@@ -1,18 +1,23 @@
 #include "Reflection.h"
-#include <mutex>
-using std::mutex;
+
 CHE_NAMESPACE_BEGIN
-const Class cpp_find_class(const char *class_name)
+//在链表中查找class_name的Class结构，并将结构存储在cache中
+//不对外作接口用，用户拿到了也没什么用。
+const Class cpp_find_Class(const char *class_name);
+
+const Class cpp_find_Class(const char *class_name)
 {
 	static map<const char*, Class> finder_cache;
+#ifndef NO_MULITHREAD
 	static mutex mtx;
-	mtx.lock();
-	auto iter = finder_cache.find(class_name);
-	if (iter != finder_cache.end()) {
-		mtx.unlock();
-		return iter->second;
+#endif
+	{
+		reflection_locker(mtx);
+		auto iter = finder_cache.find(class_name);
+		if (iter != finder_cache.end()) {
+			return iter->second;
+		}
 	}
-	mtx.unlock();
 
 	Objts p = class_list;
 	Class tmp = nullptr;
@@ -24,13 +29,17 @@ const Class cpp_find_class(const char *class_name)
 					break;
 				}
 			}
+			p = p->next;
 		}
 	}
 	catch (...) {
 		tmp = nullptr;
 	}
-	__locker(mtx);
-	finder_cache.insert(make_pair(class_name, tmp));
+
+	{
+		reflection_locker(mtx);
+		finder_cache.insert(make_pair(class_name, tmp));
+	}
 	return tmp;
 }
 
@@ -40,14 +49,16 @@ const char** cpp_getClass_properties(const Class id, long &count)
 		return nullptr;
 	}
 	static map<const Class, char **> properties_cache;
+#ifndef NO_MULITHREAD
 	static mutex mtx;
-	mtx.lock();
-	auto iter = properties_cache.find(id);
-	if (iter != properties_cache.end()) {
-		mtx.unlock();
-		return (const char **)iter->second;
+#endif
+	{
+		reflection_locker(mtx);
+		auto iter = properties_cache.find(id);
+		if (iter != properties_cache.end()) {
+			return (const char **)iter->second;
+		}
 	}
-	mtx.unlock();
 	
 	char **__memeory = nullptr;
 	_property_list *properties = id->properties;
@@ -71,14 +82,16 @@ const char** cpp_getClass_properties(const Class id, long &count)
 		__memeory = nullptr;
 		count = 0;
 	}
-	__locker(mtx);
-	properties_cache.insert(make_pair(id, __memeory));
+	{
+		reflection_locker(mtx);
+		properties_cache.insert(make_pair(id, __memeory));
+	}
 	return (const char **)__memeory;
 }
 
 void* cpp_getClass_instance(const char *class_name)
 {
-	Class tmp = cpp_find_class(class_name);
+	Class tmp = cpp_find_Class(class_name);
 	void *instance = tmp == nullptr ? nullptr : [=]() {
 		typedef void*(__stdcall*GET_INSTANCE)();
 		GET_INSTANCE __get = (GET_INSTANCE)tmp->get_class_method;

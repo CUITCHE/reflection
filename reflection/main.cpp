@@ -16,18 +16,28 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	Inheritor inht;
 
+	/*判断Inheritor是否是Baser的子类*/
 	cout << inht.isKindOfClass(abc.getClass()) << endl;
 	inht.number() = 4235;
+	/*返回inht对象的“number”属性的值*/
 	cout << inht.valueForKey<int>("number") << endl;
+	/*返回inht对象的“fly”属性的值*/
 	cout << inht.valueForKey<bool>("fly") << endl;
 
+	/*获取对象的所有属性*/
 	long count = 0;
-	//C++11的新语法？我才发现，类静态成员函数，可以被对类的对象调用……
 	const char **properties = cpp_getClass_properties(abc.getClass(), count);
+	for (int i = 0; i < count; ++i) {
+		cout << properties[i] << "\t";
+	}
+	cout << endl;
 	const char **__pro = cpp_getClass_properties(Inheritor::getClass(), count);
-	cout << properties[0] << "\t" << properties[1] << endl;
-	cout << __pro[0] << endl;
+	for (int i = 0; i < count; ++i) {
+		cout << __pro[i] << "\t";
+	}
+	cout << endl;
 
+	//获取Inheritor类的名字
 	cout << Inheritor::cpp_getClassName() << endl;
 	return 0;
 }

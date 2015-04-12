@@ -6,13 +6,15 @@
 	created:	10:4:2015   23:41
 	file base:	Reflection
 	author:		CHE
-	
+
 	purpose:	反射机制 implement
 				在正确使用反射类的同时，需要把具有反射功能的类都有实例化一遍，
 				不然有些功能不能正常使用。
 *********************************************************************/
 #include "hglobal.h"
 #include <map>
+#include <mutex>
+using std::mutex;
 using std::map;
 using std::make_pair;
 CHE_NAMESPACE_BEGIN
@@ -39,27 +41,17 @@ private:\
 __type__ __##_propertyName_
 
 //反射类声明开始
-#ifndef CHE_REFLECTION_BEGIN
-#define CHE_REFLECTION_BEGIN(class_name, super_class_name)\
-class class_name;\
-static Reflection<class_name> *s_##class_name##_reflection_obj = nullptr;\
+#ifndef reflection_declare
+#define static_obj s_##class_name##_reflection_obj
+#define reflection_declare(class_name, super_class_name)\
 class class_name :public super_class_name\
 {public:\
 	Reflection<class_name> **reflection_obj;\
-	class_name() :reflection_obj(&s_##class_name##_reflection_obj){\
-		initializeReflection(this);\
-	}\
-	static Class getClass() { return s_##class_name##_reflection_obj->id; }\
-	Class superClass()override { return super_class_name::getClass(); }\
-	bool isKindOfClass(Class class_object)override { return (*reflection_obj)->isSubOfClass(class_object); }\
-	static const char* cpp_getClassName() {\
-		auto name = typeid(class_name).name();\
-		long length = strlen(name);\
-		int i = length-1;\
-		for (; i>=0; --i){\
-			if(name[i]==':')break;\
-		}\
-		return name + i+1;}\
+	class_name();\
+	static Class getClass();\
+	virtual Class superClass()override;\
+	virtual bool isKindOfClass(Class class_object)override;\
+	static const char* cpp_getClassName();\
 template<typename T>\
 void setValueForKey(const char *propertyname, const T &val) {\
 	(*reflection_obj)->setValue_forKey(this, val, propertyname);\
@@ -69,12 +61,46 @@ const T& valueForKey(const char *propertyname) {\
 	return (*reflection_obj)->value_Forkey<T>(this, propertyname);\
 }\
 protected:\
-static void* get_class(){return new class_name;}
+static void* get_class();\
+virtual void add_properties()override;\
+public:
+#endif
+
+#ifndef reflection_synthesize
+
+#define reflection_synthesize(class_name, super_class_name)\
+static Reflection<class_name> *static_obj = nullptr;\
+class_name::class_name():reflection_obj(&static_obj){\
+_func_addr<void(class_name::*)()> d;\
+d.func = &class_name::add_properties;\
+initializeReflection(this,d.addr);\
+}\
+Class class_name::getClass(){\
+	return static_obj->id;\
+}\
+Class class_name::superClass() { \
+return super_class_name::getClass(); \
+}\
+bool class_name::isKindOfClass(Class class_object) { \
+return (*reflection_obj)->isSubOfClass(class_object);\
+}\
+const char* class_name::cpp_getClassName() {\
+		auto name = typeid(class_name).name();\
+		long length = strlen(name);\
+		int i = length-1;\
+		for (; i>=0; --i){\
+			if(name[i]==':')break;\
+		}\
+	return name+i+1;\
+}\
+void* class_name::get_class(){\
+return new class_name;\
+}
 #endif
 
 //反射类声明结束
-#ifndef CHE_REFLECTION_END
-#define CHE_REFLECTION_END };
+#ifndef reflection_declare_end
+#define reflection_declare_end }
 #endif
 
 typedef struct cpp_class *Class;
@@ -86,14 +112,14 @@ struct cpp_class {
 	Class super_class;		//父类isa结构
 	char *name;				//类名字
 	long property_count = 0;//类的所有属性的个数
-	_property_list *properties;	//属性列表
-	DWORD get_class_method;		//保存创建这个类的实例函数的地址。一般为Lambda表达式形成的
+	_property_list *properties = 0;	//属性列表
+	DWORD get_class_method;		//保存创建这个类的实例函数的地址。
 
 };
 
 struct _property_list {
-	_property_ *_property;
-	_property_list *next;
+	_property_ *_property = nullptr;
+	_property_list *next = nullptr;
 };
 
 struct _property_ {
@@ -109,8 +135,13 @@ struct cpp_obj_list {
 };
 static Objts class_list = new ObjectdefsPrivate::StayOrigin<Objts>::Type;
 
-//在链表中查找class_name的Class结构，并将结构存储在cache中
-const Class cpp_find_class(const char *class_name);
+//如果你不打算在多线程的情况下使用反射，请定义宏NO_MULITHREAD，
+//以此来提升反射在单线程中的效率
+#ifndef NO_MULITHREAD
+#define reflection_locker(mtx) __locker(mtx)
+#else
+#define reflection_locker(mtx)
+#endif // !NO_MULITHREAD
 
 //根据类的名字获取类的实例，如果没有就会返回nullptr，注意内存泄漏问题
 void* cpp_getClass_instance(const char *class_name);
@@ -123,8 +154,7 @@ const char** cpp_getClass_properties(const Class id, long &count);
 /*
 使用Meta类时，类一定要继承HObject
 */
-#include <map>
-using std::map;
+
 template<typename ClassName>
 struct Reflection final
 {
@@ -152,10 +182,6 @@ struct Reflection final
 protected:
 	void initilaize_superclass(class_type *obj);
 
-	//返回最后一个属性。
-	//所以，此时的属性中的next为空
-	_property_list* find_last_property();
-
 	//通过属性名来找到_property_结构的指针，并返回
 	_property_* find_property_by_name(const char *name);
 
@@ -171,7 +197,7 @@ protected:
 	bool type_compare(const _property_ *_property);
 
 	//向全局Objts结构体插入id，形成链表。
-	void insert_class_to_Objts();
+	void insert_Class_to_Objts();
 private:
 	//property_finder_cache中的内存来自Class id。
 	map<const char*, _property_ *> property_finder_cache;
@@ -186,22 +212,19 @@ inline Reflection<ClassName>::Reflection(ClassName * obj)
 	id->name = new char[length];
 	//存下类名字
 	memcpy(id->name, rawName, sizeof(char)*length);
-	//初始化属性链表结构
-	id->properties = new _property_list;
-	id->properties->next = nullptr;
-	id->properties->_property = nullptr;
-	id->super_class = nullptr;
+
+	//创建父类指向
 	initilaize_superclass(obj);
-	//处理类实例创建Lambda函数
+	//创建类获取实例的函数DWORD值
 	DWORD d;
 	__asm {
-		mov eax, offset ClassName::get_class
-		mov d,eax
+		mov eax, offset ClassName::get_class;
+		mov d, eax;
 	}
 	id->get_class_method = d;
 
 	//向class_list中添加子节点
-	insert_class_to_Objts();
+	insert_Class_to_Objts();
 }
 
 template<typename ClassName>
@@ -209,10 +232,10 @@ inline bool Reflection<ClassName>::isSubOfClass(Class class_object)
 {
 	Class super = id->super_class;
 looper:
-	if (super == class_object) {
+	if (super == class_object && class_object) {
 		return true;
 	}
-	super = super->super_class;
+	super = super ? super->super_class : 0;
 	if (super) {
 		goto looper;
 	}
@@ -229,34 +252,39 @@ inline void Reflection<ClassName>::initilaize_superclass(class_type * obj)
 }
 
 template<typename ClassName>
-inline _property_list * Reflection<ClassName>::find_last_property()
-{
-	_property_list *p = id->properties;
-	while (p->next != nullptr) {
-		p = p->next;
-	}
-	return p;
-}
-
-template<typename ClassName>
 inline _property_ * Reflection<ClassName>::find_property_by_name(const char * name)
 {
-	auto iter = property_finder_cache.find(name);
-	if (iter != property_finder_cache.end()) {
-		return iter->second;
+	if (name == nullptr) {
+		return nullptr;
+	}
+#ifndef NO_MULITHREAD
+	static mutex mtx;
+#endif
+	{
+		reflection_locker(mtx);
+		auto iter = property_finder_cache.find(name);
+		if (iter != property_finder_cache.end()) {
+			return iter->second;
+		}
 	}
 	//在缓存中没有找到，则开始遍历
 	Class ider = id;
 looper1:
 	_property_list *p = ider->properties;
 	_property_ *node = nullptr;
-	while (p) {
-		node = p->_property;
-		//找到
-		if (strcmp(name, node->property_name) == 0) {
-			goto looper2;
+	try {
+		while (p) {
+			node = p->_property;
+			//找到
+			if (strcmp(name, node->property_name) == 0) {
+				goto looper2;
+			}
+			p = p->next;
 		}
-		p = p->next;
+	}
+	catch (...) {
+		node = nullptr;
+		goto looper2;
 	}
 	//哦，到这儿没找到，就向它的父类查询
 
@@ -268,20 +296,26 @@ looper1:
 	ider = ider->super_class;
 	goto looper1;
 looper2:
-	//向缓存中增加记录
-	property_finder_cache.insert(make_pair(name, node));
+	{
+		reflection_locker(mtx);
+		//向缓存中增加记录
+		property_finder_cache.insert(make_pair(name, node));
+	}
 	return node;
 }
 
 template<typename ClassName>
-inline void Reflection<ClassName>::insert_class_to_Objts()
+inline void Reflection<ClassName>::insert_Class_to_Objts()
 {
-	Objts p = class_list;
-	while (p->next != nullptr) {
-		p = p->next;
-	}
-	p->isa = id;
-	p->next = new ObjectdefsPrivate::StayOrigin<Objts>::Type;
+#ifndef NO_MULITHREAD
+	static mutex mtx;
+#endif
+	//在链表首插入
+	Objts node = new ObjectdefsPrivate::StayOrigin<Objts>::Type;
+	node->isa = id;
+	reflection_locker(mtx);
+	node->next = class_list;
+	class_list = node;
 }
 
 template<typename ClassName>
@@ -292,14 +326,14 @@ inline void Reflection<ClassName>::add_property(const char * property_name, Prop
 	if (property_name == nullptr) {
 		return;
 	}
-	//找到最后一个属性
-	_property_list *node = find_last_property();
-	if (node->_property != nullptr) {
-		node->next = new _property_list;
-		node = node->next;
-		node->next = nullptr;
-	}
+	//插入链首
+	//_property_list *node = find_last_property();
+	_property_list *node = new _property_list;
 	node->_property = new _property_;
+	node->next = id->properties;
+	
+	//改写id的属性链表的指向
+	id->properties = node;
 
 	_property_ *now_property = node->_property;
 
@@ -317,7 +351,7 @@ inline void Reflection<ClassName>::add_property(const char * property_name, Prop
 	now_property->property_type = new char[name_length];
 	memcpy(now_property->property_type, arg_type_name, sizeof(char)*name_length);
 
-	//记录get方法的函数地址
+	//记录get-set方法的函数地址
 	_func_addr<PropertyFunc> d;
 	d.func = get_set;
 	now_property->property_method = d.addr;
@@ -385,7 +419,7 @@ template <typename ValueType>
 inline bool Reflection<ClassName>::type_compare(const _property_ * _property)
 {
 	if (_property == nullptr) {
-		fprintf(stderr, "CHE:属性不能为空，对应类型为：%s\n", typeid(ValueType).name());
+		fprintf(stderr, "CHE:属性不能为空，输入类型为：%s\n", typeid(ValueType).name());
 		return false;
 	}
 	const char *name = typeid(ValueType).name();
@@ -393,7 +427,8 @@ inline bool Reflection<ClassName>::type_compare(const _property_ * _property)
 		return true;
 	}
 
-	fprintf(stderr, "CHE:类型不匹配，对应类型为：%s\n", typeid(ValueType).name());
+	fprintf(stderr, "CHE:属性：%s，类型不匹配，输入类型为：%s，程序期望类型：%s，\n", _property, 
+		typeid(ValueType).name(), _property->property_type);
 	return false;
 }
 CHE_NAMESPACE_END

@@ -36,24 +36,37 @@ public:
 	property_synthesize(double, price);
 protected:
 	template<typename class_type>
-	friend void initializeReflection(class_type *obj);
+	friend void initializeReflection(class_type *obj, DWORD func);
+
+	template<typename class_type>
+	inline void add_property(class_type *obj){}
 
 	template<typename class_type, typename PropertyFunc>
 	void add_property(class_type *obj, const char * propertyName, PropertyFunc get_set);
 
+	template<typename class_type, typename PropertyFunc, typename... Args>
+	void add_property(class_type *obj, const char * propertyName, PropertyFunc get_set, Args... args);
+
 	virtual void add_properties();
 
-	static void* get_class() { return new Baser; }
+	static void* get_class();
 public:
 	Reflection<Baser> **reflection_obj;
 };
 
 template<typename class_type>
-void initializeReflection(class_type *obj)
+void initializeReflection(class_type *obj, DWORD func)
 {
+	typedef void(*ADD)(void);
 	if (REFLECTION_CLASS(obj) == nullptr) {
 		REFLECTION_CLASS(obj) = new Reflection<class_type>(obj);
-		obj->add_properties();
+		
+		ADD __add = (ADD)func;
+		DWORD target = (DWORD)obj;
+		__asm {
+			mov ecx, target;
+		}
+		__add();
 	}
 }
 
@@ -73,5 +86,11 @@ template <typename class_type, typename PropertyFunc>
 inline void Baser::add_property(class_type *obj, const char * propertyName, PropertyFunc get_set)
 {
 	(*(obj->reflection_obj))->add_property(propertyName, get_set);
+}
+template <typename class_type, typename PropertyFunc, typename ...Args>
+inline void Baser::add_property(class_type * obj, const char * propertyName, PropertyFunc get_set, Args ...args)
+{
+	add_property(obj, propertyName, get_set);
+	add_property(obj, args...);
 }
 CHE_NAMESPACE_END

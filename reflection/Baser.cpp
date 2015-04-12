@@ -5,9 +5,13 @@ static Reflection<Baser> *s_Baser_reflection_obj = nullptr;
 Baser::Baser()
 	:reflection_obj(&s_Baser_reflection_obj)
 {
-	initializeReflection(this);
+	DWORD func;
+	__asm {
+		mov eax, offset Baser::add_properties;
+		mov func, eax;
+	}
+	initializeReflection(this,func);
 }
-
 
 Baser::~Baser()
 {
@@ -39,8 +43,13 @@ const char * Baser::cpp_getClassName()
 }
 void Baser::add_properties()
 {
-	add_property(this, "number", &Baser::number);
-	add_property(this, "price", &Baser::price);
+	add_property(this, "number", &Baser::number, "price", &Baser::price);
+	//add_property(this, "price", &Baser::price);
+}
+
+void * Baser::get_class()
+{
+	return new Baser;
 }
 
 
