@@ -61,7 +61,7 @@ reflection_declare_end;
 
 ###add_properties
 
-`void add_properties()`这个方法被写在`reflection_declare`中,但却没写在`reflection_synthesize`中，这一块的实现实在太不好弄了，我只好把这个属性增加单独列出来。在这个方法中，可以利用`void add_property()`模板函数来快捷增加属性。
+`void add_properties()`这个方法被写在`reflection_declare`中,但却没写在`reflection_synthesize`中，这一块的实现实在太不好弄了，我只好把这个属性增加单独列出来。在这个方法中，可以利用`void add_property()`模板函数来快捷增加属性。详情请看：[inheritor.cpp](https://github.com/CUITCHE/reflection/blob/master/reflection/inheritor.cpp) 
 
 ###反射宏
 
@@ -144,7 +144,7 @@ return new class_name;\
 ##如何使用
 假如，我们有Baser类和Inheritor类，它们是反射类。
 Baser类有2个属性，`number<int>`,`price<double>`。
-Inheritor类有1个属性，`fly<bool>`
+Inheritor类有2个属性，`fly<bool>`,`reader<string>`
 我定义了一个Baser对象 abc和Inheritor对象inht;
 
 ###获取属性值
@@ -186,7 +186,7 @@ inht.isKindOfClass(abc.getClass());
 const char** cpp_getClass_properties(const Class id, long &count);
 ```
 
-它接收Class和int&两个参数，返回存储属性名字的二维字符数组(char)，请不要管理它的内存，从它的返回值是可以看出，它不希望它给你的内存受到不安全的干扰（例如：delete它），count会告诉你这个Class对应的类的属性有多少个。如果发生错误，将会返回一个nullptr指针，并且count被赋值为0.
+它接收Class和long&两个参数，返回存储属性名字的二维字符数组(char)，请不要管理它的内存，从它的返回值是可以看出，它不希望它给你的内存受到不安全的干扰（例如：delete它），count会告诉你这个Class对应的类的属性有多少个。如果发生错误，将会返回一个nullptr指针，并且count被赋值为0.
 我们可以这样用：
 
 ```CPP
