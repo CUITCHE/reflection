@@ -427,7 +427,7 @@ inline bool Reflection<ClassName>::type_compare(const _property_ * _property)
 		return true;
 	}
 
-	fprintf(stderr, "CHE:属性：%s，类型不匹配，输入类型为：%s，程序期望类型：%s，\n", _property, 
+	fprintf(stderr, "CHE:%s属性类型不匹配，输入类型为：%s，程序期望类型：%s\n", _property->property_name, 
 		typeid(ValueType).name(), _property->property_type);
 	return false;
 }

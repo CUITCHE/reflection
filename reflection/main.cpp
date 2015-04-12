@@ -24,6 +24,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	/*返回inht对象的“fly”属性的值*/
 	cout << inht.valueForKey<bool>("fly") << endl;
 
+	/*类型不匹配的情况*/
+	cout << inht.valueForKey<double>("number") << endl;
+
+	/*属性名为空*/
+	cout << inht.valueForKey<int>("") << endl;
+
 	/*获取对象的所有属性*/
 	long count = 0;
 	const char **properties = cpp_getClass_properties(abc.getClass(), count);
