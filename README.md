@@ -11,6 +11,19 @@
 
 我也期待，C++的标准中能出现反射这种机制吧。
 
+##开发环境
+平台：Windows 7
+
+IDE：VS 2015 preview
+
+##关于RSC组件
+
+RSC全称“Reflection System Compiler”，作为下一阶段的开发目标，
+使用RSC，可以将reflection_declare里定义的属性，自动添加到反射系统中去。
+
+使用RSC可能会使得类返回的类名不一致，请保持一个项目，是否都使用RSC。这个反射进行到这儿，使得它越来越像Qt的Q_OBJECT宏定义的功能了。虽然这也是我开发这个初心：脱离Qt框架，用自己的技术打造一个更加完善的CHE网络库。
+>目前还在开发之中
+
 ##反射机制的核心底层结构
 ```CPP
 typedef struct cpp_class *Class;
@@ -98,9 +111,11 @@ public:
 #endif
 
 //反射类声明结束
+
 #ifndef reflection_declare_end
-#define reflection_declare_end }
+#define reflection_declare_end };
 #endif
+
 ```
 
 ####reflection_synthesize

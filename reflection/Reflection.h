@@ -66,8 +66,17 @@ virtual void add_properties()override;\
 public:
 #endif
 
-#ifndef reflection_synthesize
+//定义NO_RSC宏，表示不使用RSC元编译组件
+//RSC组件，作为下一阶段的开发目标
+//RSC全称“Reflection System Compiler”
+//使用RSC，可以将reflection_declare
+//里定义的属性，自动添加到反射系统中去。
+//使用RSC可能会使得类返回的类名不一致，请保持一个项目，是否都使用RSC。
+//这个反射进行到这儿，使得它越来越像Qt的Q_OBJECT宏定义的功能了。
+//虽然这也是我开发这个初心：脱离Qt框架，用自己的技术打造一个更加完善的CHE网络库
+#ifndef NO_RSC
 
+#ifndef reflection_synthesize
 #define reflection_synthesize(class_name, super_class_name)\
 static Reflection<class_name> *static_obj = nullptr;\
 class_name::class_name():reflection_obj(&static_obj){\
@@ -98,9 +107,11 @@ return new class_name;\
 }
 #endif
 
+#endif
+
 //反射类声明结束
 #ifndef reflection_declare_end
-#define reflection_declare_end }
+#define reflection_declare_end };
 #endif
 
 typedef struct cpp_class *Class;

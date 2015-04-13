@@ -31,20 +31,21 @@ bool Baser::isKindOfClass(Class class_object)
 {
 	return (*reflection_obj)->isSubOfClass(class_object);
 }
+
 const char * Baser::cpp_getClassName()
 {
-	auto name = typeid(Baser).name();
-	long length = strlen(name);
-	int i = length - 1;
-	for (; i >= 0; --i) {
-		if (name[i] == ':')break;
-	}
-	return name + i+1;
+	return
+#ifndef NO_RSC
+		"Baser";
+#else
+		//如果使用RSC元编译组件，每个名字前加上
+		//__CR，代表CHE Reflection
+		"__CRBaser";
+#endif
 }
 void Baser::add_properties()
 {
 	add_property(this, "number", &Baser::number, "price", &Baser::price);
-	//add_property(this, "price", &Baser::price);
 }
 
 void * Baser::get_class()
