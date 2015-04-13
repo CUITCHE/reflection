@@ -18,11 +18,50 @@ IDE：VS 2015 preview
 
 ##关于RSC组件
 
-RSC全称“Reflection System Compiler”，作为下一阶段的开发目标，
-使用RSC，可以将reflection_declare里定义的属性，自动添加到反射系统中去。
+RSC全称“Reflection System Compiler”，可以将*reflection_declare*里定义的属性，自动添加到反射系统中去。
 
 使用RSC可能会使得类返回的类名不一致，请保持一个项目，是否都使用RSC。这个反射进行到这儿，使得它越来越像Qt的Q_OBJECT宏定义的功能了。虽然这也是我开发这个初心：脱离Qt框架，用自己的技术打造一个更加完善的CHE网络库。
->目前还在开发之中
+
+现在可以使用RSC组件啦。
+
+由于没有编写VS的插件，所以不能想Qt那么方便。但是使用起来也是很方便的啦。当你修改包含*reflection_declae*宏的头文件的时候，在项目根目录下运行rsc工具，然后把生成的rsc_filename.cpp文件添加到你的项目中就行了。
+
+rsc工具会自动在项目根目录创建一个名为"rscFiles"的目录。
+
+生成的文件应该是这种样子的：
+
+```CPP
+/****************************************************************************
+** Reflection code from reading C++ file G:\git\reflection\rsc\inheritor.h
+** 
+** created by RSC. author: CHE
+** 
+** WARNING! All changes made in this file will be lost!
+*****************************************************************************/
+
+#include "G:\git\reflection\rsc\inheritor.h"
+CHE_NAMESPACE_BEGIN
+
+#ifndef NO_RSC
+const char * Inheritor::cpp_getClassName()
+{
+	return "__CRInheritor";
+}
+
+void Inheritor::add_properties()
+{
+	//type:bool
+	add_property(this, "fly", &Inheritor::fly);
+	//type:string
+	add_property(this, "reader", &Inheritor::reader);
+}
+
+#endif
+CHE_NAMESPACE_END
+```
+我把生成好的rsc工具也放在[rsc](https://github.com/CUITCHE/reflection/tree/master/rsc)文件目录下了
+
+>组件完成时间：2015-04-14 02:09:04 (UTC+08:00)
 
 ##反射机制的核心底层结构
 ```CPP
