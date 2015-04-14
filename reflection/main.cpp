@@ -8,7 +8,7 @@
 using namespace std;
 using namespace che;
 
-int _tmain(int argc, _TCHAR* argv[])
+int rsc_main(int argc, char* argv[])
 {
 	Baser abc;
 	abc.setValueForKey("number", 1568);
