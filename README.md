@@ -5,7 +5,7 @@
 
 在每一种需要遍历含有Class结构的链表中，建立映射表，把每一次查询的结果缓存进去，加快第二次再查询的速度。
 
-但是，使用这种机制的前提是，所有具有反射功能的类需要提前被使用过，你可以在程序最开始前把这些反射类都new一遍。
+但是，使用这种机制的前提是，所有具有反射功能的类需要提前被使用过，你可以在程序最开始前把这些反射类都new一遍。（这个功能有待改进）
 
 果然，不是自己写的编译器，这些工作只能交给程序员来完成了。
 
@@ -24,7 +24,7 @@ RSC全称“Reflection System Compiler”，可以将*reflection_declare*里定�
 
 现在可以使用RSC组件啦。
 
-由于没有编写VS的插件，所以不能想Qt那么方便。但是使用起来也是很方便的啦。当你修改包含*reflection_declae*宏的头文件的时候，在项目根目录下运行rsc工具，然后把生成的rsc_filename.cpp文件添加到你的项目中就行了。
+由于没有编写VS的插件，所以不像Qt那么方便。但是使用起来也是很方便的啦。当你修改包含*reflection_declae*宏的头文件的时候，在项目根目录下运行rsc工具，然后把生成的rsc_filename.cpp文件添加到你的项目中就行了。
 
 rsc工具会自动在项目根目录创建一个名为"rscFiles"的目录。
 
@@ -272,7 +272,7 @@ static void* get_class();
 上一个函数，
 
 ```CPP
-class_type* cpp_getClass_instance(const char *class_name)
+void* cpp_getClass_instance(const char *class_name)
 ```
 
 其中用到了类名，类名是什么形式构成的？如何准确传参？你一定很困惑，为此我设计了一个类静态成员函数，利用编译器自带的typeid返回的name作为类名。
@@ -287,4 +287,6 @@ cout << Inheritor::cpp_getClassName() << endl;
 
 >不出意外，将会输出'Inheritor'。
 
-**关于如何使用反射类，请参考，代码中的[main.cpp](https://github.com/CUITCHE/reflection/blob/master/reflection/main.cpp) **
+关于如何使用反射类，请参考，代码中的[main.cpp](https://github.com/CUITCHE/reflection/blob/master/reflection/main.cpp)
+
+今后还会对rsc工具和整个反射机制作出调整，待时机成熟，我会回来继续整的。Time：2015-04-22 22:59:57
