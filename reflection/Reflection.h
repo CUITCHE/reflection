@@ -162,10 +162,6 @@ void* cpp_getClass_instance(const char *class_name);
 //也会返回属性的个数
 const char** cpp_getClass_properties(const Class id, long &count);
 
-/*
-使用Meta类时，类一定要继承HObject
-*/
-
 template<typename ClassName>
 struct Reflection final
 {

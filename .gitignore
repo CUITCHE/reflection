@@ -46,3 +46,7 @@ Debug/
 *.opensdf
 *.sdf
 Release/
+*.chk
+*.log
+*.jrs
+*.ide
