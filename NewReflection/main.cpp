@@ -1,19 +1,13 @@
-#include "refc.h"
+#include "RCReflection.h"
 #include <iostream>
 using namespace std;
 using namespace che;
-class TEST
-{
-public:
-	void abc(){}
-protected:
-	//void abc(int,double){}
-private:
-};
 
 int main(int argc, char* argv[])
 {
-	
+	RCReflection *abc = new RCReflection;
+	int a = dync_call<int>(abc, "add", 1, 2);
+	cout << a << endl;
 	return 0;
 }
 /*

@@ -11,6 +11,7 @@ CHE_NAMESPACE_BEGIN
 
 //所有方法列表
 static vector<cpp_method> methodlist_RCReflection = {
+	{0,"add",Function_Addr_Union<decltype(&RCReflection::add)>::addr_value(&RCReflection::add)},
 	{ PROPERTY_FLAG,"flags",Function_Addr_Union<decltype(&RCReflection::flags)>::addr_value(&RCReflection::flags) }
 };
 // 属性列表
@@ -52,6 +53,6 @@ bool RCReflection::isKindOfClass(Class class_object)
 
 Class RCReflection::getClass()
 {
-	return &RCReflectionid->isa;
+	return &id_RCReflection_DATA.isa;
 }
 CHE_NAMESPACE_END

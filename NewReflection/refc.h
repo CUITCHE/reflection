@@ -72,7 +72,6 @@ struct cpp_class
 	Class superClass;			//父类isa结构指针
 	const char *classname;		//类名
 	vector<cpp_method> *functionlist;//方法列表（包含属性的方法）
-	//vector<cpp_method*> *propertylist;//属性列表（二级不占空间，直接取functionlist的地址）
 };
 
 //每个反射类都有一个id变量，存储了类的一些信息
@@ -99,7 +98,7 @@ template<typename Ret, typename class_type> struct Property
 	typedef Ret&(__stdcall class_type::*Function)(void);
 	typedef Ret& ret;
 	static ret rc_property(const char *propertyname, class_type *o) {
-		Class _id = obj->getClass();
+		Class _id = class_type::getClass();
 		cpp_method *method = find_property_by_name(property_name, _id);
 		Function f = (Function)method->func_addr;
 		return o->*f();
@@ -115,7 +114,15 @@ cpp_method* find_method_impl(const char *name, Class _id);
 template<typename Ret, typename... Args, class Obj>
 Ret dync_call(Obj *o, const char *functionName, Args... args)
 {
-
+	Class clss = Obj::getClass();
+	cpp_method *method = find_method_by_name(functionName, clss);
+	typedef Ret(__stdcall *Function)(Args...);
+	Function f = (Function)(method->func_addr);
+	DWORD class_addr = (DWORD)o;
+	__asm{
+		mov ecx, class_addr
+	}
+	return f(args...);
 }
 CHE_NAMESPACE_END
 #endif // refc_H__
