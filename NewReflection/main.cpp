@@ -6,8 +6,15 @@ using namespace che;
 int main(int argc, char* argv[])
 {
 	RCReflection *abc = new RCReflection;
-	int a = dync_call<int>(abc, "add", 1, 2);
+	
+	int cc = 3;
+	int a = dync_call<int>(abc, "add", 1, std::ref(cc));
 	cout << a << endl;
+	a = dync_call<int>(abc, "add", 1,43);
+	cout << a << endl;
+	double b  = dync_call<double>(abc, "sub", 1, 2.3);
+	cout << b << endl;
+
 	return 0;
 }
 /*

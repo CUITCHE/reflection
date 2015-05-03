@@ -4,7 +4,7 @@ CHE_NAMESPACE_BEGIN
 //这里我用作反射类的基类演示
 class RCReflection
 {
-	___refc(RCReflection)
+	___refc(null)
 public:
 	RCReflection();
 	virtual ~RCReflection();
@@ -28,18 +28,20 @@ public:
 	template<typename T>
 	void setValueForKey(const T &val, const char *propertyname)
 	{
-		Property<T, ObjectdefsPrivate::StayOrigin<this>::Type>::rc_property(propertyname, this) = val;
+		__Property<T, typename ObjectdefsPrivate::StayOrigin<decltype(this)>::Type>::rc_property(propertyname, this) = val;
 	}
 
 	template<typename T>
 	const T& valueForKey(const char *propertyname)
 	{
-		return Property<T, ObjectdefsPrivate::StayOrigin<this>::Type>::rc_property(propertyname, this);
+		return __Property<const T, typename ObjectdefsPrivate::StayOrigin<decltype(this)>::Type>::rc_property(propertyname, this);
 	}
 #pragma endregion 不会被rsc识别
 
 public:
+	int add(int a, int &b)const { return b = a + b,b; }
 	int add(int a, int b) { return a + b; }
+	static double sub(int a, double b) { return a - b; }
 	__property(int, flags);
 };
 
