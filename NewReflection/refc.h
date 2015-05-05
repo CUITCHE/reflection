@@ -49,7 +49,11 @@ private:
 static const char* getClassname();\
 static Class getClass();\
 static Class superClass();\
-static bool isKindOfClass(Class class_object);
+static bool isKindOfClass(Class class_object);\
+template<typename T>void setValueForKey(const T &val, const char *propertyname){\
+__Property<T, typename ObjectdefsPrivate::StayOrigin<decltype(this)>::Type>::rc_property(propertyname, this) = val;}\
+template<typename T>const T& valueForKey(const char *propertyname){\
+return __Property<const T, typename ObjectdefsPrivate::StayOrigin<decltype(this)>::Type>::rc_property(propertyname, this);}
 
 #ifdef null
 #undef null
@@ -68,11 +72,6 @@ __type__ _##_propertyName_
 
 typedef struct cpp_class *Class;
 
-#ifdef PROPERTY_FLAG
-#undef PROPERTY_FLAG
-#endif // PROPERTY_FLAG
-//标识是属性方法
-#define PROPERTY_FLAG (bool(1))
 enum MethodFlags{
 	//属性方法
 	Property = 1,

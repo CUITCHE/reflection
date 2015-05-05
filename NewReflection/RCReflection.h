@@ -23,8 +23,7 @@ public:
 
 	//如果this是class_object的子类，返回true
 	static bool isKindOfClass(Class class_object);
-*/
-public:
+
 	template<typename T>
 	void setValueForKey(const T &val, const char *propertyname)
 	{
@@ -36,6 +35,7 @@ public:
 	{
 		return __Property<const T, typename ObjectdefsPrivate::StayOrigin<decltype(this)>::Type>::rc_property(propertyname, this);
 	}
+	*/
 #pragma endregion 不会被rsc识别
 
 public:

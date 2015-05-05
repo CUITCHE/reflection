@@ -82,6 +82,7 @@
     <ClInclude Include="HObjectdefs_conn.h" />
     <ClInclude Include="RCReflection.h" />
     <ClInclude Include="refc.h" />
+    <ClInclude Include="RSCParse.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hglobal.cpp" />
@@ -89,6 +90,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="RCReflection.cpp" />
     <ClCompile Include="refc.cpp" />
+    <ClCompile Include="RSCParse.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

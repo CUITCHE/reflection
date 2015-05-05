@@ -1,20 +1,14 @@
 #include "RCReflection.h"
 #include <iostream>
+#include <regex>
 using namespace std;
 using namespace che;
-
+inline static void add() {
+	cout << 2;
+}
 int main(int argc, char* argv[])
 {
-	RCReflection *abc = new RCReflection;
 	
-	int cc = 3;
-	int a = dync_call<int>(abc, "add", 1, std::ref(cc));
-	cout << a << endl;
-	a = dync_call<int>(abc, "add", 1,43);
-	cout << a << endl;
-	double b  = dync_call<double>(abc, "sub", 1, 2.3);
-	cout << b << endl;
-
 	return 0;
 }
 /*

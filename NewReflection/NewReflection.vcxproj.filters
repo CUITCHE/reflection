@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="RSC">
+      <UniqueIdentifier>{7bbc8941-1fd1-40f6-9a63-35b20467ee5d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="refc.h">
@@ -26,6 +29,9 @@
     </ClInclude>
     <ClInclude Include="RCReflection.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RSCParse.h">
+      <Filter>RSC</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -43,6 +49,9 @@
     </ClCompile>
     <ClCompile Include="refc.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RSCParse.cpp">
+      <Filter>RSC</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
