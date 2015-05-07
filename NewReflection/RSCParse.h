@@ -4,7 +4,7 @@
 #include <list>
 using namespace std;
 
-//Range[left, right)
+//Range[left, right]
 struct Range 
 {
 	size_t left;
@@ -29,6 +29,26 @@ struct PropertyMethod
 	string type;
 	string name;
 };
+
+struct RSCParseDATA
+{
+	Range range;			//确定Parse的范围
+	mutable string superName;	//父类的名字
+	mutable string className;	//类名
+	string *writeTextBuffer = 0;	//生成的代码串缓冲区
+	vector<Method> methods;			//方法
+	vector<PropertyMethod> properties;//属性方法
+	string *getBuffer() {
+		if (writeTextBuffer == 0) {
+			writeTextBuffer = new string;
+		}
+		return writeTextBuffer;
+	}
+	~RSCParseDATA() {
+		delete writeTextBuffer;
+	}
+};
+
 class RSCParse
 {
 public:
@@ -52,6 +72,9 @@ public:
 
 	//生成代码
 	void generateCode();
+
+	//有可能一个文件中含有一个或者多个class，所以需要继续查找
+	bool nextOne()const;
 protected:
 	//清除注释内容
 	void removeNoteContext();
@@ -83,11 +106,8 @@ protected:
 	//* \return：true：也许是一个正确的函数参数内容
 	bool findTextInBracketsAndMethod(size_t _Off_Left, size_t _Off_Right, struct SpecialString *out, struct SpecialString *outMethod);
 private:
-	mutable string superName;	//父类的名字
-	mutable string className;	//类名
 	string *fileTextBuffer;
-	string *writeTextBuffer;	//生成的代码串缓冲区
-	vector<Method> methods;		//方法
-	vector<PropertyMethod> properties;//属性方法
+	vector<RSCParseDATA> __data;
+	RSCParseDATA *_Ptr_data;		//当前分析的位置
 };
 

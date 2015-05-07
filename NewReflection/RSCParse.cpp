@@ -62,15 +62,15 @@ struct SpecialString
 };
 
 RSCParse::RSCParse(string *buffer)
-	:fileTextBuffer(buffer)
-	, writeTextBuffer(nullptr)
+	:_Ptr_data(0)
+	,__data(1)
 {
+	_Ptr_data = &__data.at(0);
 }
 
 
 RSCParse::~RSCParse()
 {
-	delete writeTextBuffer;
 }
 
 void RSCParse::readyForParse()
@@ -116,21 +116,26 @@ void RSCParse::parse()
 
 void RSCParse::setSuperClassNameNull() const
 {
-	superName.clear();
+	_Ptr_data->superName.clear();
 }
 
 void RSCParse::generateCode()
 {
-	writeTextBuffer = new string;
+	
+}
+
+bool RSCParse::nextOne() const
+{
+	return false;
 }
 
 void RSCParse::clear()
 {
-	writeTextBuffer->clear();
-	properties.clear();
-	methods.clear();
-	superName.clear();
-	className.clear();
+	_Ptr_data->writeTextBuffer->clear();
+	_Ptr_data->properties.clear();
+	_Ptr_data->methods.clear();
+	_Ptr_data->superName.clear();
+	_Ptr_data->className.clear();
 }
 
 void RSCParse::removeNoteContext()
@@ -194,7 +199,7 @@ void RSCParse::findSuperAndClass()
 	//寻找类名
 	tmpChar = fileTextBuffer->at(posClass);
 	while (tmpChar != ' ' && tmpChar != '\n' && tmpChar != '{' && tmpChar != ':') {
-		className.push_back(tmpChar);
+		_Ptr_data->className.push_back(tmpChar);
 		tmpChar = fileTextBuffer->at(++posClass);
 	}
 	//寻找父类，如果存在
@@ -211,7 +216,7 @@ void RSCParse::findSuperAndClass()
 		}
 		//寻找父类名字
 		while (tmpChar != ' ' && tmpChar != '\n' && tmpChar != '{') {
-			superName.push_back(tmpChar);
+			_Ptr_data->superName.push_back(tmpChar);
 			tmpChar = fileTextBuffer->at(++posClass);
 		}
 	}
@@ -225,7 +230,7 @@ void RSCParse::findProperties()
 	while (pos != string::npos) {
 		pos += 11;
 		if (parseProperty(_type, _property, pos) == true) {
-			properties.push_back({ _type,_property });
+			_Ptr_data->properties.push_back({ _type,_property });
 		}
 		pos = fileTextBuffer->find("__property(", pos);
 	}

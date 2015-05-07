@@ -6,9 +6,18 @@ using namespace che;
 inline static void add() {
 	cout << 2;
 }
+class TEST
+{
+public:
+protected:
+private:
+};
 int main(int argc, char* argv[])
 {
-	
+	int a = 0;
+	if (a = 1) {
+		cout << "failed" << endl;
+	}
 	return 0;
 }
 /*
